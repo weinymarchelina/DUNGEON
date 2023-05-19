@@ -1,7 +1,7 @@
-﻿//
-//
-//
-//
+﻿// Name: B11115010 鍾詩靈	B11115014 魏美芳
+// Date: May 19, 2023
+// Last Update: May 20, 2023
+// Problem statement: This C++ program implements a dungeon game with 3 different enemies and having other extra features
 
 #include "main.h"
 #include "Hero.h"
@@ -9,7 +9,6 @@
 #include "Scarfy.h"
 #include "Bomber.h"
 #include <vector>
-#include <map>
 #include <fstream>
 
 Hero	 gHero(2, 2);
