@@ -9,7 +9,8 @@
 
 // Check whether the location is a valid one i.e. not a wall
 bool isPositionValid(Position& loc);
-// clip algroithm
+
+// Clip algroithm
 float clip(float n, float minimum, float maximum);
 
 // Check whether two position is close enough
