@@ -1,0 +1,24 @@
+15 15
+OOOOOOOOOOOOOOO
+O             O
+O             O
+O             O
+O             O
+O             O
+O             O
+O             O
+O             O
+O             O
+O             O
+O             O
+O             O
+O             O
+OOOOOOOOOOOOOOO
+
+5 3 70 2 15 18
+2
+C 11 7 1
+S 10 8 1
+2
+2 5
+7 1
