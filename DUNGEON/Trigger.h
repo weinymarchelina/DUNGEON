@@ -1,24 +1,18 @@
 #pragma once
 #include <string>
-#include "Position.h"
+#include "Item.h"
 #include "Hero.h"
 
 class Hero; // Forward declaration of Hero class
 
-class Trigger {
+class Trigger : public Item {
 private:
-    Position _pos;
-    char _icon;
-    int _exp;
+    int sExp;
 
 public:
     Trigger();
     Trigger(int x, int y);
     Trigger(const Trigger& ref);
-    void update(Hero& hero) const;
-    void setPos(const Position& pos);
-    void setPos(int x, int y);
-    Position getPos() const;
-    char getIcon() const;
+    void update(Hero& hero) const override;
     int getExpAmount() const;
 };

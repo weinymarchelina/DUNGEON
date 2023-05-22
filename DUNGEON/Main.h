@@ -5,7 +5,7 @@
 #include <conio.h>		// _getch() <= to read input without enter "ENTER" key
 #include <algorithm>	// for max and min function
 #include "Position.h"
-#include "Trigger.h"
+#include "Hero.h"
 
 // Check whether the location is a valid one i.e. not a wall
 bool isPositionValid(Position& loc);

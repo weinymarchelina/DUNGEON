@@ -11,7 +11,7 @@ Creature::Creature()
     this->power = 2;
     this->hasSeenHero = false;
     this->viewDistance = 3;
-    this->chaseHeroProbability = 50;
+    this->chaseHeroProbability = 0;
     this->heroPrevPos = Position(1, 1);
     this->canMove = true;
     this->awareness = false;
@@ -25,6 +25,7 @@ void Creature::setPos(Position pos)
     this->heroPrevPos = pos;
 }
 
+// Set position for x y parameter
 void Creature::setPos(int x, int y)
 {
     this->sPos.x = x;
@@ -49,25 +50,30 @@ char Creature::getIcon()
     return this->sIcon;
 }
 
+// Get has seen
 bool Creature::getHasSeen() {
     return this->hasSeenHero;
 }
 
+// Get creature's HP
 int Creature::getHealth() {
     return this->hp;
 }
 
-void Creature::getHealth(int hp) {
+// Set creature's HP
+void Creature::setHealth(int hp) {
     this->hp = hp;
 }
 
 // Update creature state
 void Creature::update(Hero& hero)
 {
+    // Check and update creature sight state
     this->updateSight(hero);
 
+    // Let the creature chase the hero if it sees the hero, otherwise let it move randomly
     if (this->hasSeenHero) {
-        // calculate the probability of chasing the hero
+        // Calculate the probability of chasing the hero
         int chaseProbability = rand() % 101;
 
         if (chaseProbability <= this->chaseHeroProbability) {
@@ -81,8 +87,10 @@ void Creature::update(Hero& hero)
         this->moveRandomly();
     }
 
+    // Update damage to the hero
     this->updateDamage(hero);
 
+    // If the position of the creature is the same as the position of hero, let it move randomly till the position is not the same
     while (hero.getPos() == sPos) {
         this->moveRandomly();
     }
@@ -125,7 +133,7 @@ void Creature::updateDamage(Hero& hero)
 
 // Move randomly
 void Creature::moveRandomly() {
-    // move the creature randomly to up, down, left or right and test whether the new position is valid
+    // Move the creature randomly to up, down, left or right and test whether the new position is valid
     int randomNum = rand() % 4;
 
     Position newPosition = sPos;

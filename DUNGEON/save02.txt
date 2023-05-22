@@ -1,24 +1,34 @@
-15 15
-OOOOOOOOOOOOOOO
-O             O
-O             O
-O             O
-O             O
-O             O
-O             O
-O             O
-O             O
-O             O
-O             O
-O             O
-O             O
-O             O
-OOOOOOOOOOOOOOO
+20 20
+OOOOOOOOOOOOOOOOOOOO
+O                  O
+O                  O
+O                  O
+O                  O
+O                  O
+O                  O
+O                  O
+O                  O
+O                  O
+O                  O
+O                  O
+O                  O
+O                  O
+O                  O
+O                  O
+O                  O
+O                  O
+O                  O
+OOOOOOOOOOOOOOOOOOOO
 
-7 8 65 3 7 21
+15 4 70 1 0 15
 2
-C 9 2 1
-S 1 12 1
-2
-2 5
-7 1
+C 18 16 1
+S 15 18 5
+7
+T 3 14 
+T 1 7 
+F 6 4 
+F 12 12 
+F 9 2 
+F 17 15 
+F 10 17 

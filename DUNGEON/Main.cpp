@@ -4,10 +4,12 @@
 // Problem statement: This C++ program implements a dungeon game with 3 different enemies and having other extra features
 
 #include "main.h"
-#include "Hero.h"
 #include "Creature.h"
 #include "Scarfy.h"
 #include "Bomber.h"
+#include "Item.h"
+#include "Trigger.h"
+#include "Food.h"
 #include <map>
 #include <vector>
 #include <fstream>
@@ -21,7 +23,7 @@ const char GNOTHING = ' ';
 
 int GWIDTH = -1;
 int GHEIGHT = -1;
-const int MIN_SIZE = 4;
+const int MIN_SIZE = 10;
 const double gTimeLog = 0.033;
 
 // Distance for canSee function
@@ -64,9 +66,8 @@ void saveMap();
 void loadMap();
 
 // Initialize vectors to store game's objects
-std::vector<Trigger*> gTriggers;
 std::vector<Creature*> gCreatures;
-std::vector<Bomber*> gBombers;
+std::vector<Item*> gItems;
 
 // Intialize different enemy type counts 
 int creatureCount = 0;
@@ -139,7 +140,7 @@ int main(int argc, char** argv)
 		}
 	}
 
-	//
+	// systenm pause
 	system("pause");
 
 	return 0;
@@ -150,15 +151,15 @@ int main(int argc, char** argv)
 // Post: Set the pressed key value to true and the others to false
 void keyUpdate(bool key[])
 {
-	//
+	// Initializes all elements of the key array to false
 	for (int i = 0; i < ValidInput::INVALID; i++) {
 		key[i] = false;
 	}
 
-	//
+	// Reads a character input from the user using _getch()
 	char input = _getch();
 
-	//
+	// Check the value of the input character
 	switch (input) {
 	case 'w':
 		key[ValidInput::EW] = true;
@@ -222,10 +223,10 @@ bool canSee(Position cPos, Position hPos, Position& dir, int viewDistance)
 	dir.x = (int)clip((float)(hPos.x - cPos.x), -1.f, 1.f); // clip the value between -1 ~ 1
 	dir.y = (int)clip((float)(hPos.y - cPos.y), -1.f, 1.f);
 
-	// 
+	// Integer variable count is initialized to 0
 	int count = 0;
 
-	//
+	// Checks if the position cPos plus the direction dir multiplied by count is equal to the target position hPos
 	do {
 		// spot the target position
 		if (cPos + dir * count == hPos) {
@@ -246,7 +247,7 @@ void setupBoard(int rowN, int colN)
 	// Allocate & init game board using 2d dynamic array
 	gBoard = new char* [rowN];
 
-	//
+	// It iterates over each row and column of the game board and assigns the appropriate value to each element
 	for (int i = 0; i < rowN; i++) {
 		gBoard[i] = new char[colN];
 
@@ -258,72 +259,82 @@ void setupBoard(int rowN, int colN)
 		}
 	}
 
-	//
+	// Creates a 2D vector of boolean values (validFlags) with a height of GHEIGHT
 	std::vector<std::vector<bool>> validFlags(GHEIGHT);
 
 	// Setup for (random) position of all elements and implementation of game board using 2d dynamic array (elements has to be randomly generated within canvas)
 	for (int i = 0; i < GHEIGHT; i++) {
-		//
+		// Resizes each row to have a width of GWIDTH
 		validFlags[i].resize(GWIDTH);
 
-		// 
+		// Iterates over each row and column of the game board and assigns true to the corresponding element in validFlags if the element in gBoard is not equal to GWALL. Otherwise, it assigns false
 		for (int j = 0; j < GWIDTH; j++) {
 			validFlags[i][j] = gBoard[i][j] == GWALL ? false : true;
 		}
 	}
 
-	//
+	// Generates a random position within the specified number of rows (rowN) and columns (colN)
 	auto getRandomPos = [&rowN, &colN]() {
 		return Position((int)(rand() % colN), (int)(rand() % rowN));
 	};
 
-	//
+	// Defines another lambda function getValidRandomPos that repeatedly calls getRandomPos until it generates a valid position
 	auto getValidRandomPos = [&validFlags, &getRandomPos]() {
-		//
+		// Repeatedly generates random positions using getRandomPos and checks if the corresponding element in validFlags is true
 		while (true) {
 			Position pos = getRandomPos();
 
-			//
+			// If the generated position is valid, returns the generated position
 			if (validFlags[pos.y][pos.x]) {
 				return pos;
 			}
 		}
 	};
 
-	// 
+	// Generates a random position (hPos) for the hero using getValidRandomPos
 	Position hPos = getValidRandomPos();
 	validFlags[hPos.y][hPos.x] = false;
 	gHero.setPos(hPos);
 
-	//
+	// Creates instances of the Creature classes
 	Creature* waddleDee = new Creature();
 	gCreatures.push_back(waddleDee);
 	creatureCount++;
 
-	//
+	// Creates instances of the Scarfy classes
 	Creature* scarfy = new Scarfy();
 	gCreatures.push_back(scarfy);
 	scarfyCount++;
 
-	//
+	// Creates instances of the Bomber classes
 	Creature* bomber = new Bomber();
 	gCreatures.push_back(bomber);
 	bomberCount++;
 
-	//
+	// It generates valid random positions for each creature in gCreatures using getValidRandomPos
 	for (auto& creature : gCreatures) {
 		Position cPos = getValidRandomPos();
 		validFlags[cPos.y][cPos.x] = false;
 		creature->setPos(cPos);
 	}
 
-	//
+	// It creates two instances of the Trigger class, and put them into the gItems vector
 	for (int i = 0; i < 2; i++) {
 		Trigger* trigger = new Trigger();
-		Position tPos = getValidRandomPos();
-		validFlags[tPos.y][tPos.x] = false;
-		trigger->setPos(tPos);
-		gTriggers.push_back(trigger);
+		gItems.push_back(trigger);
+	}
+
+	// It creates five instances of the Food class, and put them into the gItems vector
+	for (int i = 0; i < 5; i++) {
+		Food* food = new Food();
+		gItems.push_back(food);
+	}
+
+	// It generates valid random positions for each item in gItems using getValidRandomPos
+	for (auto& item : gItems) {
+		Position iPos = getValidRandomPos();
+		validFlags[iPos.y][iPos.x] = false;
+		item->setPos(iPos);
 	}
 }
 
@@ -343,10 +354,10 @@ void draw()
 		}
 	}
 
-	// Draw the triggers using for loop on drawBoard
-	for (int i = 0; i < gTriggers.size(); i++) {
-		Position t = gTriggers[i]->getPos();
-		drawBoard[t.y][t.x] = gTriggers[i]->getIcon();
+	// Draw the items using for loop on drawBoard
+	for (int i = 0; i < gItems.size(); i++) {
+		Position t = gItems[i]->getPos();
+		drawBoard[t.y][t.x] = gItems[i]->getIcon();
 	}
 
 	// Draw the creatures using for loop on drawBoard
@@ -414,16 +425,16 @@ void drawInfo(void)
 // Post: The board is updated with the newest change of Hero and Creature based on the user key input
 void update(bool key[])
 {
-	// 
+	// Clearing the console screen
 	system("CLS");
 
-	//
+	// Declares a delta variable of type Position to represent the change in position
 	Position delta;
 
-	// 
+	// A boolean variable hasInput is initialized as false to keep track of whether any valid input has been received
 	bool hasInput = false;
 
-	//
+	// The function checks the values in the key array to determine the input
 	if (key[ValidInput::EW]) {
 		delta -= Position(0, 1);
 		hasInput = true;
@@ -441,10 +452,10 @@ void update(bool key[])
 		hasInput = true;
 	}
 	else {
-		//
+		// If none of the directional keys are pressed
 		bool allInvalid = true;
 
-		//
+		// Checks if all the input values in the key array are false
 		for (int i = 0; i < ValidInput::INVALID; i++) {
 			if (key[i]) {
 				allInvalid = false;
@@ -452,17 +463,18 @@ void update(bool key[])
 			}
 		}
 
-		//
+		// Prints "Invalid input" to indicate that no valid input was detected
 		if (allInvalid)
 			std::cout << "invalid input\n";
 	}
+	// If valid input is detected, calls the move function of the gHero object
 	if (hasInput) {
 		gHero.move(delta);
 	}
 
-	// Manipulate update of the triggers using while loop
-	for (int i = 0; i < gTriggers.size(); i++) {
-		gTriggers[i]->update(gHero);
+	// Manipulate update of the items using while loop
+	for (int i = 0; i < gItems.size(); i++) {
+		gItems[i]->update(gHero);
 	}
 
 	// Manipulate update of the creatures using while loop
@@ -495,30 +507,30 @@ void update(bool key[])
 	drawInfo();
 }
 
-// Intent: 
-// Pre:
-// Post: 
+// Intent: Save the map data to a file
+// Pre: The game board, hero, creatures, and items are initialized
+// Post: The map data is saved to a file
 void saveMap() {
-	// 
+	// Clears the console screen
 	system("CLS");
 
-	//
+	// Prints header for the user to input file name
 	std::cout << "Input file name for saving or Exit to leave saving." << std::endl;
 	std::cout << "Input: ";
 
-	//
+	// Declare string called input to save the file name
 	std::string input;
 	std::cin >> input;
 
-	//
+	// If the user enters "Exit", the function returns and exits without saving
 	if (input.compare("Exit") == 0)
 		return;
 
-	//
+	// It creates an output file stream oStream with the specified file name concatenated with ".txt"
 	std::ofstream oStream(input + ".txt");
 	oStream << GWIDTH << " " << GHEIGHT << std::endl;
 
-	//
+	// The function writes the dimensions of the game board (GWIDTH and GHEIGHT) to the file
 	for (int i = 0; i < GHEIGHT; i++) {
 		for (int j = 0; j < GWIDTH; j++) {
 			oStream << gBoard[i][j];
@@ -527,18 +539,18 @@ void saveMap() {
 	}
 	oStream << std::endl;
 
-	//
+	// Writes the hero's position, HP, level, experience, and maximum experience to the file
 	oStream << gHero.getPos() << " " << gHero.getHP() << " " << gHero.getLevel() << " " << gHero.getExp() << " " << gHero.getMaxExp() << std::endl;
 
-	//
+	// Writes the number of creatures in the gCreatures vector to the file
 	oStream << gCreatures.size() << std::endl;
 
-	//
+	// For each creature in the vector
 	for (int i = 0; i < gCreatures.size(); i++) {
-		//
+		// Retrieves the current creature's icon using gCreatures[i]->getIcon()
 		char currentIcon = gCreatures[i]->getIcon();
 
-		//
+		// Based on the icon value, it determines the appropriate identifier, and writes it to the file
 		if (currentIcon == 'C' || currentIcon == '!') {
 			oStream << "C ";
 		}
@@ -549,42 +561,52 @@ void saveMap() {
 			oStream << "B ";
 		}
 
-		//
+		// Writes the creature's position (getPos()) and health (getHealth()) to the file
 		oStream << gCreatures[i]->getPos() << " " << gCreatures[i]->getHealth() << std::endl;
 	}
 
-	//
-	oStream << gTriggers.size() << std::endl;
+	// Writes the number of items in the gItems vector to the file
+	oStream << gItems.size() << std::endl;
 
-	//
-	for (int i = 0; i < gTriggers.size(); i++) {
-		oStream << gTriggers[i]->getPos() << std::endl;
+	// Writes the number of items in the gItems vector to the file
+	for (int i = 0; i < gItems.size(); i++) {
+		// Retrieves the current item's icon using gItems[i]->getIcon()
+		char currentIcon = gItems[i]->getIcon();
+
+		// Retrieves the current item's position using gItems[i]->getPos()
+		Position itemPos = gItems[i]->getPos();
+
+		// Writes the item icon to know the item type
+		oStream << currentIcon << " ";
+
+		// Writes the creature's position (getPos()) and health (getHealth()) to the file
+		oStream << itemPos << " " << std::endl;
 	}
 
-	//
+	// The output file stream is closed
 	oStream.close();
 }
 
-// Intent: 
-// Pre:
-// Post:
+// Intent: Load a map from a file
+// Pre: None
+// Post: Map is loaded from the file and game state is updated accordingly
 void loadMap() {
-	// 
+	// Clear the screen
 	system("CLS");
 
-	//
+	// Prompt for the input file name
 	std::cout << "Input file name for loading or Exit to leave loading." << std::endl;
 	std::cout << "Input: ";
 
-	//
+	// Read the input file name
 	std::string input;
 	std::cin >> input;
 
-	//
+	// Check if the user wants to exit
 	if (input.compare("Exit") == 0)
 		return;
 
-	//
+	// Open the input file
 	std::ifstream iStream(input + ".txt");
 	if (!iStream.is_open())
 		return;
@@ -595,66 +617,66 @@ void loadMap() {
 	}
 	delete[] gBoard;
 
-	//
+	// Delete existing items and clear the gCreatures vectors
 	for (int i = 0; i < gCreatures.size(); i++)
 		delete gCreatures[i];
 	gCreatures.clear();
 
-	// 
-	for (int i = 0; i < gTriggers.size(); i++)
-		delete gTriggers[i];
-	gTriggers.clear();
+	// Delete existing items and clear the gItems vector
+	for (int i = 0; i < gItems.size(); i++)
+		delete gItems[i];
+	gItems.clear();
 
-	//
+	// Read the dimensions of the map
 	iStream >> GWIDTH >> GHEIGHT;
 
-	//
+	// Declare char, and reads a single character from the input file stream
 	char _c;
 	iStream.get(_c);
 
-	//
+	// Allocate memory for the new dungeon board
 	gBoard = new char* [GHEIGHT];
 
-	//
+	// Read the map data
 	for (int i = 0; i < GHEIGHT; i++) {
-		//
+		// Declare dynamic array of characters is allocated for each row using gBoard[i] = new char[GWIDTH]
 		gBoard[i] = new char[GWIDTH];
 
-		//
+		// Iterates over each column of the current row
 		for (int j = 0; j < GWIDTH; j++) {
 			iStream.get(gBoard[i][j]);
 		}
 
-		//
+		// Consume the newline character
 		iStream.get(_c);
 	}
 
-	//
+	// Read the hero's position and attributes
 	Position pos;
 	int hp, level, exp, maxExp;
 	iStream >> pos >> hp >> level >> exp >> maxExp;
 
-	//
+	// Sets Hero's position, HP, level, exp, maxExp
 	gHero.setPos(pos);
 	gHero.setHP(hp);
 	gHero.setLevel(level);
 	gHero.setExp(exp);
 	gHero.SetMaxExp(maxExp);
 
-	//
+	// Read the number of creatures
 	int creatureN;
 	iStream >> creatureN;
 
-	//
+	// Read the creature data and create the creatures
 	for (int i = 0; i < creatureN; i++) {
 		char iconType = ' ';
 		int hp = 1;
 		iStream >> iconType >> pos >> hp;
 
-		//
+		// A pointer to a Creature object named creature is initialized as nullptr
 		Creature* creature = nullptr;
 
-		//
+		// Based on the value of iconType, a new creature object is created and assigned to the creature pointer
 		if (iconType == 'C') {
 			creature = new Creature();
 		}
@@ -665,28 +687,43 @@ void loadMap() {
 			creature = new Bomber();
 		}
 
-		//
+		// Sets the creature position and Hp
 		creature->setPos(pos);
-		creature->getHealth(hp);
+		creature->setHealth(hp);
 
-		//
+		// Creates creature object is added to the gCreatures vector 
 		gCreatures.push_back(creature);
 	}
 
-	//
-	int triggerN;
-	iStream >> triggerN;
+	// Read the number of items
+	int itemN;
+	iStream >> itemN;
 
-	//
-	for (int i = 0; i < triggerN; i++) {
-		iStream >> pos;
+	// Read the item data and create the items
+	for (int i = 0; i < itemN; i++) {
+		char iconType = ' ';
+		iStream >> iconType >> pos;
 
-		//
-		Trigger* trigger = new Trigger();
-		trigger->setPos(pos);
-		gTriggers.push_back(trigger);
+		// A pointer to a Item object named item is initialized as nullptr
+		Item* item = nullptr;
+
+		// Based on the value of iconType, a new item object is created and assigned to the item pointer
+		if (iconType == 'T') {
+			item = new Trigger();
+		}
+		else {
+			item = new Food();
+			item->setIcon(iconType);
+		}
+		
+		// Sets the item position
+		item->setPos(pos);
+
+		// Creates items object is added to the gItems vector 
+		gItems.push_back(item);
 	}
 
-	//
+	// Close the input file
 	iStream.close();
 }
+

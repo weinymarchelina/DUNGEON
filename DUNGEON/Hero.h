@@ -82,7 +82,10 @@ public:
 	// Get Max
 	int getMaxExp(void) { return this->sMaxExp; }
 
+	// Get HP
 	int getHP() const { return this->hp; }
+
+	// Set HP
 	void setHP(int hp) { this->hp = hp; }
 
 	// Incrementally move the elements 

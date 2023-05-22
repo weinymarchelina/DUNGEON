@@ -22,6 +22,8 @@ protected:
 	virtual void updateDamage(Hero& hero);
 	void chaseHero(Hero& hero);
 	void moveRandomly();
+	std::string sImgUrl;
+
 
 public:
 	// Default constructor
@@ -33,9 +35,9 @@ public:
 	char getIcon(void);
 	bool getHasSeen();
 	int getHealth();
-	void getHealth(int);
-
-public:
+	void setHealth(int);
+	std::string getImgUrl();
+	void setImgUrl(std::string url);
 	virtual void update(Hero& hero);
 };
 

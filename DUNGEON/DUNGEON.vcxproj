@@ -129,7 +129,9 @@
   <ItemGroup>
     <ClCompile Include="Bomber.cpp" />
     <ClCompile Include="Creature.cpp" />
+    <ClCompile Include="Food.cpp" />
     <ClCompile Include="Hero.cpp" />
+    <ClCompile Include="Item.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Position.cpp" />
     <ClCompile Include="Scarfy.cpp" />
@@ -138,6 +140,8 @@
   <ItemGroup>
     <ClInclude Include="Bomber.h" />
     <ClInclude Include="Creature.h" />
+    <ClInclude Include="Food.h" />
+    <ClInclude Include="Item.h" />
     <ClInclude Include="Hero.h" />
     <ClInclude Include="Main.h" />
     <ClInclude Include="Position.h" />
