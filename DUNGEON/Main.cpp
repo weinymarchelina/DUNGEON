@@ -1,7 +1,7 @@
 ﻿// Name: B11115010 鍾詩靈	B11115014 魏美芳
-// Date: May 19, 2023
-// Last Update: May 20, 2023
-// Problem statement: This C++ program implements a dungeon game with 3 different enemies and having other extra features
+// Date: May 23, 2023
+// Last Update: May 23, 2023 
+// Problem statement: This C++ program implements a dungeon game with 3 different enemies and several specials items with other features
 
 #include "main.h"
 #include "Creature.h"
@@ -420,6 +420,19 @@ void drawInfo(void)
 	std::cout << "(ESC) Exit (1) Save (2) Load" << std::endl;
 }
 
+// Intent: Get random valid position
+// Pre: rowN and colN is needed
+// Post: Return a valid position
+Position getRandomValidPosition(int rowN, int colN) {
+	Position newPos = Position((int)(rand() % colN), (int)(rand() % rowN));
+
+	while (!isPositionValid(newPos)) {
+		newPos = Position((int)(rand() % colN), (int)(rand() % rowN));
+	}
+
+	return newPos;
+}
+
 // Intent: Update the state of the board
 // Pre: The user key input as the parameter
 // Post: The board is updated with the newest change of Hero and Creature based on the user key input
@@ -477,13 +490,43 @@ void update(bool key[])
 		gItems[i]->update(gHero);
 	}
 
+	// Setup deletedIndex vector as index marker
+	std::vector<int> deletedIndex;
+
+	// Handle items different isTriggered state
+	for (int i = gItems.size() - 1; i >= 0; i--) {
+		// Handle hasTriggered cases
+		if (gItems[i]->getHasTriggered()) {
+			// For trigger, set new random location (Trigger moves when trigerred); for food, food gone when eaten (only if the hero's hp is not max)
+			if (gItems[i]->getIcon() == 'T') {
+				//	Set a random valid position for the new position of the trigger
+				Position newPos = getRandomValidPosition(GHEIGHT, GWIDTH);
+				gItems[i]->setPos(newPos);
+				gItems[i]->getHasTriggered(false);
+			}
+			else {
+				// Add the deleted food to the vector
+				deletedIndex.push_back(i);
+			}
+		}
+	}
+
+	// Delete eaten food
+	for (int& index : deletedIndex) {
+		// Remove the object from memory
+		delete gItems[index];
+
+		// Remove the food from the gItems vector
+		gItems.erase(gItems.begin() + index);
+	}
+
+	//	Clear the deletedIndex to be used on gCreatures
+	deletedIndex.clear();
+
 	// Manipulate update of the creatures using while loop
 	for (int i = 0; i < gCreatures.size(); i++) {
 		gCreatures[i]->update(gHero);
 	}
-
-	// Setup deletedIndex vector as index marker
-	std::vector<int> deletedIndex;
 
 	// Find creature with hp = 0
 	for (int i = gCreatures.size() - 1; i >= 0; i--) {

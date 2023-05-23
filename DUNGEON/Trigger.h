@@ -13,6 +13,6 @@ public:
     Trigger();
     Trigger(int x, int y);
     Trigger(const Trigger& ref);
-    void update(Hero& hero) const override;
+    void update(Hero& hero) override;
     int getExpAmount() const;
 };

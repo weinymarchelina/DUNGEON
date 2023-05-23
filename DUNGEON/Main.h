@@ -16,3 +16,5 @@ float clip(float n, float minimum, float maximum);
 // Check whether two position is close enough
 bool canSee(Position cPos, Position hPos, Position& pos2, int viewDistance);
 
+// Get random valid position
+Position getRandomValidPosition(int rowN, int colN);

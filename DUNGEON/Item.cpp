@@ -1,8 +1,9 @@
 #include "Item.h"
-
+ 
 // The constructor sIcon to 'T
 Item::Item() {
     sIcon = 'T';
+    this->sIsTriggered = false;
 }
 
 // The constructor takes x and y as parameters, sets sPos.x to x, sPos.y to y, and sIcon to 'T'
@@ -10,6 +11,7 @@ Item::Item(int x, int y) {
     sPos.x = x;
     sPos.y = y;
     sIcon = 'T';
+    this->sIsTriggered = false;
 }
 
 // The copy constructor creates a new Item object by copying the values from ref
@@ -18,8 +20,17 @@ Item::Item(const Item& ref) {
 }
 
 // Update template
-void Item::update(Hero& hero) const {
-    // 
+void Item::update(Hero& hero) {
+}
+
+// Get isTriggered
+bool Item::getHasTriggered() {
+    return this->sIsTriggered;
+}
+
+// Set isTriggered 
+void Item::getHasTriggered(bool isTriggered) {
+    this->sIsTriggered = isTriggered;
 }
 
 // The setPos function sets the sPos member variable to pos

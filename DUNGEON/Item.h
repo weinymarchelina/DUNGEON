@@ -4,7 +4,7 @@
 #include "Hero.h"
 
 class Hero; // Forward declaration of Hero class
-
+ 
 class Item {
 protected:
     Position sPos;
@@ -16,7 +16,7 @@ public:
     Item();
     Item(int x, int y);
     Item(const Item& ref);
-    virtual void update(Hero& hero) const;
+    virtual void update(Hero& hero);
     void setPos(const Position& pos);
     void setPos(int x, int y);
     Position getPos() const;
@@ -25,4 +25,6 @@ public:
     void setImgUrl(std::string url);
     void setIcon(char& icon);
     char getIcon();
+    bool getHasTriggered();
+    void getHasTriggered(bool isTriggered);
 };
