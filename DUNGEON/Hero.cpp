@@ -126,7 +126,7 @@ void Hero::gainEXP(int points) {
 	this->attack = 1.5 * sLevel;
 }
 
-//The function of the Hero class takes an integer points parameter and reduces the hero's hit points (hp) by points
+// The function of the Hero class takes an integer points parameter and reduces the hero's hit points (hp) by points
 void Hero::damage(int points) {
 	hp = hp - points;
 
@@ -135,49 +135,145 @@ void Hero::damage(int points) {
 		hp = 0;
 }
 
-//
-void Hero::swallow(const char** board) {
-
-	/*
+// The function eats food or enemy that is located in front of the hero (limit two cells, based on direction)
+void Hero::swallow(int width, int height, std::vector<Creature*>& creatures, std::vector<Item*>& items, int foodBoost) {
+	// Set the hero position and direction as sample
 	Position cell1 = this->sPos;
 	Position cell2 = this->sPos;
+	int heroDir = this->direction;
 
-	if (this->direction == 0) {
+	// Modify the cell according to the hero's direction
+	if (heroDir == 0) {
 		cell1.y -= 1;
 		cell2.y -= 2;
 	}
-	else if (this->direction == 1) {
+	else if (heroDir == 1) {
 		cell1.x += 1;
 		cell2.x += 2;
 	}
-	else if (this->direction == 2) {
+	else if (heroDir == 2) {
 		cell1.y += 1;
 		cell2.y += 2;
 	}
-	else if (this->direction == 3) {
+	else if (heroDir == 3) {
 		cell1.x -= 1;
 		cell2.x -= 2;
 	}
 
-	if (isPositionValid(cell1)) {
-		char icon = board[cell1.y][cell1.x];
+	// Initialize new variable
+	Position eatenCell = Position(-1, -1);
+	char icon = ' ';
 
+	// Check whether the second cell is valid to set it as eatenCell and get the icon
+	if (cell2.isInRange(width, height)) {
+		char targetIcon = ' ';
+
+		// Find creature that is on cell2 position
+		for (auto& creature : creatures) {
+			if (creature->getPos() == cell2) {
+				targetIcon = creature->getIcon();
+				break;
+			}
+		}
+
+		// If the are no creature on cell2, then find whether there are items on that position
+		if (targetIcon == ' ') {
+
+			// Find item that is on cell2 position
+			for (auto& item : items) {
+				if (item->getPos() == cell2) {
+					targetIcon = item->getIcon();
+					break;
+				}
+			}
+		}
+
+		// If that position is not empty then set it as eaten cell
+		if (targetIcon != ' ' && targetIcon != 'T') {
+			icon = targetIcon;
+			eatenCell = cell2;
+		}
+	}
+
+	// Check whether the first cell is valid and overwites the eaten cell to the first one if the first cell also not empty
+	if (cell1.isInRange(width, height)) {
+		char targetIcon = ' ';
+
+		// Find creature that is on cell1 position
+		for (auto& creature : creatures) {
+			if (creature->getPos() == cell1) {
+				targetIcon = creature->getIcon();
+				break;
+			}
+		}
+
+		// If the are no creature on cell1, then find whether there is item on that position
+		if (targetIcon == ' ') {
+
+			// Find item that is on cell1 position
+			for (auto& item : items) {
+				if (item->getPos() == cell1) {
+					targetIcon = item->getIcon();
+					break;
+				}
+			}
+		}
+
+		// If that position is not empty trigger then set it as eaten cell
+		if (targetIcon != ' ' && targetIcon != 'T') {
+			icon = targetIcon;
+			eatenCell = cell1;
+		}
+	}
+
+	// If the eatenCell is not invalid, then handle the swallow
+	if (eatenCell != Position(-1, -1)) {
+		std::cout << icon;
+
+		// Handle the swallow based on the swallowed class (item or enemy) from the eatenCell icon
 		if (icon == 'C' || icon == 'S' || icon == '@' || icon == 'B' || icon == '&') {
 
+			// Loop through the creatures to eat that enemy
+			for (auto& creature : creatures) {
+
+				// Check whether the creature is eatenCell creature and make sure that the hero's attack is higher than the creature's hp
+				if (creature->getPos() == eatenCell && this->attack > creature->getHealth()) {
+					// Set the creature hp to 0 to be deleted
+					creature->setHealth(0);
+					break;
+				}
+			}
 		}
-		else if (icon == '0' || icon == '1' || icon == '2' || icon == '3' || icon == '4' || icon == 'M') {
+		else {
+			// Loop though the items to eat that food
+			for (auto& item : items) {
 
+				// Check whether the item is the eaten cell and also make sure that the hero hp is not full
+				if (item->getPos() == eatenCell && this->hp < 100) {
+					// Handle different effect based on the type (tomato or not)
+					if (item->getIcon() == 'M') {
+						this->hp = 100;
+					}
+					else {
+						// If the icon is not 'M', then it is a food, so just boost amount hp recovery
+						int newHp = this->hp + foodBoost;
+
+						// Set hp not exceeding 100
+						if (newHp > 100) {
+							newHp = 100;
+						}
+
+						// Set new hp to the hero's hp
+						this->hp = newHp;
+					}
+
+					// Set isTriggered to true since the hero has eat the food
+					item->setHasTriggered(true);
+					break;
+				}
+			}
 		}
-
 	}
-
-	if (isPositionValid(cell2)) {
-		char icon = board[cell2.y][cell2.x];
-
-	}
-	*/
-
-
 }
 
 // Get the hero direction

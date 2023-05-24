@@ -1,5 +1,12 @@
 #pragma once
 #include <string>
+#include "Creature.h"
+#include "Item.h"
+
+class Creature;
+class Item;
+
+#include <vector>
 #include "Position.h"
 #include "main.h"
 //************************************************************
@@ -75,7 +82,7 @@ public:
 	void damage(int points);
 
 	// Swallow ability
-	void swallow(const char** board);
+	void swallow(int width, int height, std::vector<Creature*>& creatures, std::vector<Item*>& items, int foodBoost);
 
 	// Get hero direction
 	int getDirection();

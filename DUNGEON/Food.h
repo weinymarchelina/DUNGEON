@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
 #include "Item.h"
+
+class Item;
  
 class Food : public Item {
 private:

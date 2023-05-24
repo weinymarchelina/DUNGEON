@@ -2,6 +2,9 @@
 #include <string>
 #include "Position.h"
 #include "main.h"
+#include "Hero.h"
+
+class Hero;
 
 class Creature {//creature class 
 protected:
