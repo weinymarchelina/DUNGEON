@@ -15,4 +15,6 @@ public:
     int getTomatoRate();
     void setTomatoRate(int rate);
     void generateFoodType();
+    int getBoost();
+    void setBoost(int boost);
 };

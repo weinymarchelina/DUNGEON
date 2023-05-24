@@ -29,7 +29,7 @@ bool Item::getHasTriggered() {
 }
 
 // Set isTriggered 
-void Item::getHasTriggered(bool isTriggered) {
+void Item::setHasTriggered(bool isTriggered) {
     this->sIsTriggered = isTriggered;
 }
 

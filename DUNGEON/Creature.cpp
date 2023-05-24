@@ -13,9 +13,11 @@ Creature::Creature()
     this->viewDistance = 3;
     this->chaseHeroProbability = 0;
     this->heroPrevPos = Position(1, 1);
+    this->heroPrevDir = 0;
     this->canMove = true;
     this->awareness = false;
     this->hp = 1;
+    this->direction = 2;
 }
 
 // Set position
@@ -140,15 +142,19 @@ void Creature::moveRandomly() {
 
     if (randomNum == 0) {
         newPosition.x += 1;
+        this->direction = 1;
     }
     else if (randomNum == 1) {
         newPosition.x -= 1;
+        this->direction = 3;
     }
     else if (randomNum == 2) {
         newPosition.y += 1;
+        this->direction = 2;
     }
     else if (randomNum == 3) {
         newPosition.y -= 1;
+        this->direction = 0;
     }
 
     if (isPositionValid(newPosition)) {
@@ -174,15 +180,18 @@ void Creature::chaseHero(Hero& hero) {
     if (newDx == 1 && newDy == 1 && dx == 1 && dy == 1 && !overlapsHero && isPositionValid(this->heroPrevPos))
     {
         this->sPos = this->heroPrevPos;
+        this->direction = this->heroPrevDir;
     }
     else
     {
         // let the creature move towards hero
         if (hPos.x - sPos.x > 0) {
             dx = 1;
+            this->direction = 1;
         }
         else if (hPos.x - sPos.x < 0) {
             dx = -1;
+            this->direction = 3;
         }
         else {
             dx = 0;
@@ -190,9 +199,11 @@ void Creature::chaseHero(Hero& hero) {
 
         if (hPos.y - sPos.y > 0) {
             dy = 1;
+            this->direction = 2;
         }
         else if (hPos.y - sPos.y < 0) {
             dy = -1;
+            this->direction = 0;
         }
         else {
             dy = 0;
@@ -212,5 +223,11 @@ void Creature::chaseHero(Hero& hero) {
 
     // save hero's previous position
     this->heroPrevPos = hPos;
+    this->heroPrevDir = hero.getDirection();
 }
 
+// Get the creature direction
+int Creature::getDirection() { return this->direction; }
+
+// Set the creature direction
+void Creature::setDirection(int direction) { this->direction = direction; }

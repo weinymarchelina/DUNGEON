@@ -97,3 +97,13 @@ void Food::generateFoodType() {
         }
     }
 }
+
+// Get the boost
+int Food::getBoost() {
+    return this->sBoost;
+}
+
+// Set the boost
+void Food::setBoost(int boost) {
+    this->sBoost = boost;
+}

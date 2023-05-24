@@ -13,6 +13,7 @@ protected:
 	int power;
 	int viewDistance;
 	Position heroPrevPos;
+	int heroPrevDir;
 	int chaseHeroProbability;
 	bool canMove = true;
 	bool awareness = false;
@@ -23,6 +24,7 @@ protected:
 	void chaseHero(Hero& hero);
 	void moveRandomly();
 	std::string sImgUrl;
+	int direction;
 
 
 public:
@@ -39,5 +41,7 @@ public:
 	std::string getImgUrl();
 	void setImgUrl(std::string url);
 	virtual void update(Hero& hero);
+	int getDirection();
+	void setDirection(int direction);
 };
 

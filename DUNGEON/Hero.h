@@ -15,78 +15,55 @@ private:
 	int	sLevel = 1;     // Level
 	int	sMaxExp;		// Level update experience
 	int	sCurrentExp;	// current exp hero has
+	int direction;
+	int attack;
 
 public:
 	// Default constructor
-	Hero() {
-		this->sPos.x = 0;
-		this->sPos.y = 0;
-		this->sLevel = 1;
-		this->sCurrentExp = 0;
-		this->sMaxExp = 15;
-		this->sIcon = 'H';
-		this->hp = 100;
-	};
-	// Setting constructor
-	Hero(int x, int y, int level = 1, int maxExp = 15, int currentExp = 0, char icon = 'H', int hp = 100) {
-		this->sPos.x = x;
-		this->sPos.y = y;
-		this->sLevel = level;
-		this->sCurrentExp = currentExp;
-		this->sMaxExp = maxExp;
-		this->sIcon = icon;
-		this->hp = hp;
-	};
+	Hero();
 
 	// Setting constructor
-	Hero(Position& pos, int level = 1, int maxExp = 15, int currentExp = 0, char icon = 'H', int hp = 100) {
-		this->sPos = pos;
-		this->sLevel = level;
-		this->sCurrentExp = currentExp;
-		this->sMaxExp = maxExp;
-		this->sIcon = icon;
-		this->hp = hp;
-	};
+	Hero(int x, int y, int level = 1, int maxExp = 15, int currentExp = 0, char icon = 'H', int hp = 100);
+
+	// Setting constructor
+	Hero(Position& pos, int level, int maxExp, int currentExp, char icon, int hp);
 
 	// Set position
-	void setPos(Position pos) { this->sPos = pos; }
-	void setPos(int x, int y) {
-		this->sPos.x = x;
-		this->sPos.y = y;
-	}
+	void setPos(Position pos);
+	void setPos(int x, int y);
 
 	// Set icon
-	void setIcon(char& icon) { this->sIcon = icon; }
+	void setIcon(char& icon);
 
 	// Set level
-	void setLevel(int level) { this->sLevel = level; }
+	void setLevel(int level);
 
 	// Set exp
-	void setExp(int exp) { this->sCurrentExp = exp; }
+	void setExp(int exp);
 
 	// Set MaxExp
-	void SetMaxExp(int maxexp) { this->sMaxExp = maxexp; }
+	void SetMaxExp(int maxexp);
 
 	// Get position
-	Position getPos(void) { return this->sPos; }
+	Position getPos(void);
 
 	// Get Icon
-	char getIcon(void) { return this->sIcon; }
+	char getIcon(void);
 
 	// Get level
-	int getLevel(void) { return this->sLevel; }
+	int getLevel(void);
 
 	// Get Exp
-	int getExp(void) { return this->sCurrentExp; }
+	int getExp(void);
 
 	// Get Max
-	int getMaxExp(void) { return this->sMaxExp; }
+	int getMaxExp(void);
 
 	// Get HP
-	int getHP() const { return this->hp; }
+	int getHP();
 
 	// Set HP
-	void setHP(int hp) { this->hp = hp; }
+	void setHP(int hp);
 
 	// Incrementally move the elements 
 	void move(Position delta);
@@ -96,4 +73,20 @@ public:
 
 	// Reduce user HP by damage
 	void damage(int points);
+
+	// Swallow ability
+	void swallow(const char** board);
+
+	// Get hero direction
+	int getDirection();
+
+	// Set hero direction
+	void setDirection(int direction);
+
+	// Get hero attack
+	int getAttack();
+
+	// Set hero attack
+	void setAttack(int attack);
+
 };

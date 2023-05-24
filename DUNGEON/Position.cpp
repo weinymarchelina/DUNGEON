@@ -57,3 +57,13 @@ std::ostream& operator<<(std::ostream& oStream, const Position& pos) {
 std::istream& operator>>(std::istream& iStream, Position& pos) {
 	return iStream >> pos.x >> pos.y;
 }
+
+//Check whether the position is in range
+bool Position::isInRange(int width, int height) {
+	//Check if the position is inside the wall
+	if (this->x > 0 && this->x < width && this->y > 0 && this->y < height) {
+		return true;
+	}
+
+	return false;
+}

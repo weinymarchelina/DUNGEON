@@ -19,4 +19,6 @@ public:
 
 	friend std::ostream& operator<<(std::ostream& oStream, const Position& pos);
 	friend std::istream& operator>>(std::istream& iStream, Position& pos);
+
+	bool isInRange(int width, int height);
 };

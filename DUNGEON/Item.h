@@ -26,5 +26,5 @@ public:
     void setIcon(char& icon);
     char getIcon();
     bool getHasTriggered();
-    void getHasTriggered(bool isTriggered);
+    void setHasTriggered(bool isTriggered);
 };

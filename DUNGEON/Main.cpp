@@ -1,6 +1,6 @@
 ﻿// Name: B11115010 鍾詩靈	B11115014 魏美芳
-// Date: May 23, 2023
-// Last Update: May 23, 2023 
+// Date: May 30, 2023
+// Last Update: May 30, 2023 
 // Problem statement: This C++ program implements a dungeon game with 3 different enemies and several specials items with other features
 
 #include "main.h"
@@ -13,6 +13,7 @@
 #include <map>
 #include <vector>
 #include <fstream>
+#include <stdexcept> 
 
 // Initialize hero
 Hero gHero(2, 2);
@@ -40,9 +41,14 @@ enum ValidInput
 	EA = 2,
 	ED = 3,
 	ESPACE = 4,
-	EESC = 5,
-	ESave = 6,
-	ELoad = 7,
+	EI = 5,
+	EL = 6,
+	EK = 7,
+	EJ = 8,
+	EP = 9,
+	EESC = 10,
+	ESave = 11,
+	ELoad = 12,
 	INVALID,
 };
 
@@ -176,6 +182,21 @@ void keyUpdate(bool key[])
 	case ' ':
 		key[ValidInput::ESPACE] = true;
 		break;
+	case 'i':
+		key[ValidInput::EI] = true;
+		break;
+	case 'l':
+		key[ValidInput::EL] = true;
+		break;
+	case 'k':
+		key[ValidInput::EK] = true;
+		break;
+	case 'j':
+		key[ValidInput::EJ] = true;
+		break;
+	case 'p':
+		key[ValidInput::EP] = true;
+		break;
 	case 27:
 		key[ValidInput::EESC] = true;
 		break;
@@ -195,6 +216,7 @@ void keyUpdate(bool key[])
 // Post: Return true if the new position is valid and did not clash with other things, otherwise return false
 bool isPositionValid(Position& pos)
 {
+	// Return false if position is out of range
 	if (pos.y > GHEIGHT || pos.x > GWIDTH || pos.y < 0 || pos.x < 0) {
 		return false;
 	}
@@ -415,8 +437,25 @@ void drawInfo(void)
 {
 	std::cout << "The hero is level " << gHero.getLevel() << "(" << gHero.getExp() << "/" << gHero.getMaxExp() << " to level up)" << std::endl;
 	std::cout << "The hero has " << gHero.getHP() << " hp" << std::endl;
+	std::cout << "The hero has " << gHero.getAttack() << " attack" << std::endl;
 	std::cout << "Use wsad key to move Hero " << gHero.getIcon() << std::endl;
 	std::cout << "Every time you step on a trigger T, the hero gets 10 exp." << std::endl;
+
+	switch (gHero.getDirection()) {
+	case 0:
+		std::cout << "The hero faced up" << std::endl;
+		break;
+	case 1:
+		std::cout << "The hero faced right" << std::endl;
+		break;
+	case 2:
+		std::cout << "The hero faced down" << std::endl;
+		break;
+	case 3:
+		std::cout << "The hero faced left" << std::endl;
+		break;
+	}
+
 	std::cout << "(ESC) Exit (1) Save (2) Load" << std::endl;
 }
 
@@ -447,38 +486,193 @@ void update(bool key[])
 	// A boolean variable hasInput is initialized as false to keep track of whether any valid input has been received
 	bool hasInput = false;
 
-	// The function checks the values in the key array to determine the input
+	// The function checks the values in the key array to determine the input and also set direction of the hero
 	if (key[ValidInput::EW]) {
 		delta -= Position(0, 1);
 		hasInput = true;
+		gHero.setDirection(0);
 	}
 	else if (key[ValidInput::ES]) {
 		delta += Position(0, 1);
 		hasInput = true;
+		gHero.setDirection(2);
 	}
 	else if (key[ValidInput::EA]) {
 		delta = delta - Position(1, 0);
 		hasInput = true;
+		gHero.setDirection(3);
 	}
 	else if (key[ValidInput::ED]) {
 		delta = delta + Position(1, 0);
 		hasInput = true;
+		gHero.setDirection(1);
+	}
+	else if (key[ValidInput::EI]) {
+		gHero.setDirection(0);
+	}
+	else if (key[ValidInput::EK]) {
+		gHero.setDirection(2);
+	}
+	else if (key[ValidInput::EJ]) {
+		gHero.setDirection(3);
+	}
+	else if (key[ValidInput::EL]) {
+		gHero.setDirection(1);
+	}
+	else if (key[ValidInput::EP]) {
+		// Set the hero position and direction as sample
+		Position cell1 = gHero.getPos();
+		Position cell2 = gHero.getPos();
+		int heroDir = gHero.getDirection();
+
+		// Modify the cell according to the ehroo's direction
+		if (heroDir == 0) {
+			cell1.y -= 1;
+			cell2.y -= 2;
+		}
+		else if (heroDir == 1) {
+			cell1.x += 1;
+			cell2.x += 2;
+		}
+		else if (heroDir == 2) {
+			cell1.y += 1;
+			cell2.y += 2;
+		}
+		else if (heroDir == 3) {
+			cell1.x -= 1;
+			cell2.x -= 2;
+		}
+
+		// Initialize new variable
+		Position eatenCell = Position(-1, -1);
+		char icon = ' ';
+
+		// Check whether the second cell is valid to set it as eatenCell and get the icon
+		if (cell2.isInRange(GWIDTH, GHEIGHT)) {
+			char targetIcon = ' ';
+
+			for (auto& creature : gCreatures) {
+				if (creature->getPos() == cell2) {
+					targetIcon = creature->getIcon();
+					break;
+				}
+			}
+
+			if (targetIcon == ' ') {
+				for (auto& item : gItems) {
+					if (item->getPos() == cell2) {
+						targetIcon = item->getIcon();
+						break;
+					}
+				}
+			}
+
+			// If that position is not empty then set it as eaten cell
+			if (targetIcon != ' ' && targetIcon != 'T') {
+				icon = targetIcon;
+				eatenCell = cell2;
+			}
+		}
+
+		// Check whether the first cell is valid and overwites the eaten cell to the first one if the first cell also not empty
+		if (cell1.isInRange(GWIDTH, GHEIGHT)) {
+			char targetIcon = ' ';
+
+			for (auto& creature : gCreatures) {
+				if (creature->getPos() == cell1) {
+					targetIcon = creature->getIcon();
+					break;
+				}
+			}
+
+			if (targetIcon == ' ') {
+				for (auto& item : gItems) {
+					if (item->getPos() == cell1) {
+						targetIcon = item->getIcon();
+						break;
+					}
+				}
+			}
+
+			// If that position is not empty then set it as eaten cell
+			if (targetIcon != ' ' && targetIcon != 'T') {
+				icon = targetIcon;
+				eatenCell = cell1;
+			}
+		}
+
+		// If the eatenCell is not invalid, then handle the swallow
+		if (eatenCell != Position(-1, -1)) {
+			std::cout << icon;
+
+			// 
+			if (icon == 'C' || icon == 'S' || icon == '@' || icon == 'B' || icon == '&') {
+				// 
+				for (auto& creature : gCreatures) {
+					//
+					if (creature->getPos() == eatenCell && gHero.getAttack() > creature->getHealth()) {
+						creature->setHealth(0);
+						break;
+					}
+				}
+			}
+			else {
+				for (auto& item : gItems) {
+
+					// 
+					if (item->getPos() == eatenCell && gHero.getHP() < 100) {
+						//
+						if (item->getIcon() == 'M') {
+							gHero.setHP(100);
+						}
+						else {
+							// Create new instance to get the boost power according to the difficulty level
+							Food* newFood = new Food();
+
+							// If the icon is not 'M', then it is a food, so just boost amount hp recovery
+							int newHp = gHero.getHP() + newFood->getBoost();
+
+							// Set hp not exceeding 100
+							if (newHp > 100) {
+								newHp = 100;
+							}
+
+							// Set new hp to the hero's hp
+							gHero.setHP(newHp);
+						}
+
+						// Set isTriggered to true since the hero has eat the food
+						item->setHasTriggered(true);
+						break;
+					}
+				}
+			}
+			// gHero.swallow(int width, int height, std::vector<Creature*> creatures, std::vector<Item*> items);
+		}
 	}
 	else {
 		// If none of the directional keys are pressed
 		bool allInvalid = true;
 
-		// Checks if all the input values in the key array are false
-		for (int i = 0; i < ValidInput::INVALID; i++) {
-			if (key[i]) {
-				allInvalid = false;
-				break;
+		// Prints "Invalid input" to indicate that no valid input was detected
+		try {
+			// Checks if all the input values in the key array are false
+			for (int i = 0; i < ValidInput::INVALID; i++) {
+				if (key[i]) {
+					allInvalid = false;
+					break;
+				}
+			}
+
+			// Throw a runtime_error exception if all invalid
+			if (allInvalid) {
+				throw std::runtime_error("Invalid input!"); 
 			}
 		}
-
-		// Prints "Invalid input" to indicate that no valid input was detected
-		if (allInvalid)
-			std::cout << "invalid input\n";
+		catch (const std::exception& e) {
+			// Catch the exception and print "Invalid input"
+			std::cout << e.what() << std::endl;
+		}
 	}
 	// If valid input is detected, calls the move function of the gHero object
 	if (hasInput) {
@@ -502,7 +696,7 @@ void update(bool key[])
 				//	Set a random valid position for the new position of the trigger
 				Position newPos = getRandomValidPosition(GHEIGHT, GWIDTH);
 				gItems[i]->setPos(newPos);
-				gItems[i]->getHasTriggered(false);
+				gItems[i]->setHasTriggered(false);
 			}
 			else {
 				// Add the deleted food to the vector
