@@ -131,8 +131,9 @@ void Hero::damage(int points) {
 	hp = hp - points;
 
 	//If hp becomes less than 0, it is set to 0 to avoid negative hit points
-	if (hp < 0)
+	if (hp < 0) {
 		hp = 0;
+	}
 }
 
 // The function eats food or enemy that is located in front of the hero (limit two cells, based on direction)

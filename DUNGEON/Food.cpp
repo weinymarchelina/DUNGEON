@@ -1,19 +1,19 @@
 #include "Food.h" 
 
 // The constructor initializes sBoost to 10 and sIcon to 'T
-Food::Food() : sBoost(10) {
+Food::Food(int tomatoRate) : sBoost(10) {
     sIcon = 'F';
-    sTomatoRate = 10;
+    sTomatoRate = tomatoRate;
     this->sIsTriggered = false;
     this->generateFoodType();
 }
 
 // The constructor takes x and y as parameters, initializes sExp to 10, sets sPos.x to x, sPos.y to y, and sIcon to 'T'
-Food::Food(int x, int y) : sBoost(10) {
+Food::Food(int x, int y, int tomatoRate) : sBoost(10) {
     sPos.x = x;
     sPos.y = y;
     sIcon = 'F';
-    sTomatoRate = 10;
+    sTomatoRate = tomatoRate;
     this->sIsTriggered = false;
     this->generateFoodType();
 }

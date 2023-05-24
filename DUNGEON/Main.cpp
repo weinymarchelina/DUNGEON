@@ -24,11 +24,17 @@ const char GNOTHING = ' ';
 
 int GWIDTH = -1;
 int GHEIGHT = -1;
-const int MIN_SIZE = 10;
+int MIN_SIZE = 10;
 const double gTimeLog = 0.033;
 
 // Distance for canSee function
 const int gDistance = 4;
+
+// Difficulty Level
+int gDifficulties = 0;
+
+// Invisible record
+bool hasNotDamaged = true;
 
 // Initialize game board
 char** gBoard;
@@ -75,10 +81,23 @@ void loadMap();
 std::vector<Creature*> gCreatures;
 std::vector<Item*> gItems;
 
-// Intialize different enemy type counts 
-int creatureCount = 0;
+// Intialize different enemy type counts and item type counts
+int deeCount = 0;
 int scarfyCount = 0;
 int bomberCount = 0;
+int triggerCount = 0;
+int foodCount = 0;
+int tomatoDropRate = 0;
+
+// Initialize gameOver and isWin
+bool isGameOver = false;
+bool isWin = false;
+
+// Store all saved file name during the game
+std::vector<std::string> savedFileName;
+
+// Initialize records
+std::vector<bool> gameRecords;
 
 int main(int argc, char** argv)
 {
@@ -93,20 +112,193 @@ int main(int argc, char** argv)
 		gKeyState[i] = false;
 	}
 
-	// Asking user input for the valid size of the custom board
+	// Set the 5 records to false
+	for (int i = 0; i < 5; i++) {
+		gameRecords.push_back(false);
+	}
+
+	// Set up ifstream for previous game data records
+	std::ifstream recordsFile("game_data_records");
+
+	// Read previous records if available; otherwise create new
+	if (!recordsFile.is_open()) {
+		std::ofstream newRecordsFile("game_data_records");
+		newRecordsFile.close();
+	}
+	else {
+		int recordType = -1;
+
+		// Read the data on the records
+		while (recordsFile >> recordType) {
+			// If the record is valid (0 - 4), then set it to true according to the index
+			if (recordType >= 0 && recordType <= 4) {
+				gameRecords[recordType] = true;
+			}
+		}
+
+		recordsFile.close();
+	}
+		 
+	// Asing user input for difficulty level
 	while (true) {
-		std::cout << "Enter Width: ";
-		std::cin >> GWIDTH;
-		std::cout << "Enter Height: ";
-		std::cin >> GHEIGHT;
-		system("CLS");
-		if (GHEIGHT < MIN_SIZE || GWIDTH < MIN_SIZE) {
-			std::cout << "Illegal, both has to be larger than " << MIN_SIZE << std::endl;
+		std::string welcomeImage = R"(
+                                                                                                    
+         **********        ***********                      ,*.                                     
+       ***%%%%%%%%***  ,***(%%%%%%%%****                ****%%%***                                  
+      **%%%%%%%%%%******%%%%%%%%%%%%****               **%%%%%%%****                                
+     ***%%%%%%%%%%**%%%%%%%%%%%%%(***/%%%***   ,,     ***%%%%%%%*******,    *******.     ********   
+     **%%%%%%%%%%%%%%%%%%%%%%%*****%%%%%%%/***(%%%***/%%%/**%%%%%%%%%%%******%%%%%%*** ***%%%%%%*** 
+    **(%%%%%%%%%%%%%%%%%%%*********%%%%%%***%%%%%%%%%%%%%%%**%%%%%%%%%%%%(**%%%%%%%*****%%%%%%%%****
+    **%%%%%%%%%%%%%%%%%%******. .**********(%%%%%%%%%%%%%***%%%**%%%%%%%%%**/%%%%%%%**(%%%%%%%******
+   **%%%%%%%%%%%%%%%%%%%%%***  **(%%%%%%***%%%%%%%%*****%%%%%*/####*%%%%%%***%%%%%%%*%%%%%%%%*****  
+  ,**%%%%%%%%%%%%%%%%%%%%%%%*****%%%%%%%**%%%%%%%*****%%%%%%%%*###(%%%%%%(***%%%%%%%%%%%%%%*****.   
+  **%%%%%%%%%%****(%%%%%%%%%%%**%%%%%%%***%%%%%%%****%%%%%%%%%%%%%%%%%%%******%%%%%%%%%%%%*****     
+ ***%%%%%%%%%#*******%%%%%%%%%**%%%%%%%**%%%%%%%*****%%%%%%%%%%%%%%%%%********%%%%%%%%%%*****       
+ **%%%%%%%%%%****   ***%%%%%%%**%%%%%(***%%%%%%******%%%%%%%%%%%%%************%%%%%%%%#*****        
+  ***%%%%/******      ***************************** ********************%%%%%%%%%%%%%*****          
+    **********           .****    ,**        .                       **(%%%%%%%%%%*******           
+                                                                      ****************              
+                                                                         *********                  
+
+)";
+
+		std::cout << welcomeImage << std::endl;
+
+		// Displays accomplishment according to the game_data_records
+		for (int i = 0; i < gameRecords.size(); i++) {
+			// Filter out accomplishment for unachieved records
+			if (!gameRecords[i]) {
+				continue;
+			}
+
+			// Print out accomplishment based on the records
+			switch (i)
+			{
+			case 0:
+				std::cout << "ALL LEVELS COMPLETED\t: TRUE" << std::endl;
+				break;
+			case 1:
+				std::cout << "EASY MODE\t: COMPLETED" << std::endl;
+				break;
+			case 2:
+				std::cout << "MEDIUM MODE\t: COMPLETED" << std::endl;
+				break;
+			case 3:
+				std::cout << "HARD MODE\t: COMPLETED" << std::endl;
+				break;
+			case 4:
+				std::cout << "INVISIBLE MODE\t: COMPLETED" << std::endl;
+				break;
+			}
+		}
+
+		std::cout << std::endl;
+
+		// Prints info for selecting game
+		std::cout << "Please select the difficulties: " << std::endl;
+		std::cout << "0) Custom " << std::endl;
+		std::cout << "1) Easy " << std::endl;
+		std::cout << "2) Medium " << std::endl;
+		std::cout << "3) Hard " << std::endl;
+		std::cout << "Enter Difficulties: ";
+		std::cin >> gDifficulties;
+
+		// Keep asking for the valid input
+		if (gDifficulties < 0 || gDifficulties > 3) {
+			std::cout << "Please select the correct mode" << std::endl;
 		}
 		else {
 			break;
 		}
 	}
+
+	// Setup board based on the difficulties preference
+	if (gDifficulties == 0) {
+		// Asking user input for the valid number of the enemies
+		while (true) {
+			std::cout << "Enter the number of Waddle Dee, Scarfy, and Bomber: ";
+			std::cin >> deeCount;
+			std::cin >> scarfyCount;
+			std::cin >> bomberCount;
+
+			// Keep asking for the valid input
+			if (deeCount < 1 && scarfyCount < 1 && bomberCount < 1) {
+				std::cout << "There should be at least 1 of each enemy type on the game" << std::endl;
+			}
+			else {
+				break;
+			}
+		}
+
+		// Asking user input for the valid number of the items
+		while (true) {
+			std::cout << "Enter the number of Trigger, Food, and Maxim Tomato Rate: ";
+			std::cin >> triggerCount;
+			std::cin >> foodCount;
+			std::cin >> tomatoDropRate;
+
+			// Keep asking for the valid input
+			if (triggerCount < 1 && foodCount < 0 && tomatoDropRate < 0) {
+				std::cout << "Please enter valid positive number (there should be at least 1 trigger on the game)" << std::endl;
+			}
+			else {
+				break;
+			}
+		}
+
+		// Calculate total object on the game
+		int totalObjects = (deeCount + scarfyCount + bomberCount + triggerCount + foodCount + 5);
+
+		// Asking user input for the valid size of the custom board
+		while (true) {
+			std::cout << "Enter Width: ";
+			std::cin >> GWIDTH;
+			std::cout << "Enter Height: ";
+			std::cin >> GHEIGHT;
+			// system("CLS");
+
+			// Keep asking for the valid input
+			if (GHEIGHT * GWIDTH < totalObjects) {
+				std::cout << "The board need to be able contains " << totalObjects << " objects" << std::endl;
+			}
+			else {
+				break;
+			}
+		}
+	}
+	else if (gDifficulties == 1) {
+		GWIDTH = 17;
+		GHEIGHT = 17;
+		deeCount = 3;
+		scarfyCount = 1;
+		bomberCount = 1;
+		triggerCount = 3;
+		foodCount = 5;
+		tomatoDropRate = 20;
+	}
+	else if (gDifficulties == 2) {
+		GWIDTH = 15;
+		GHEIGHT = 15;
+		deeCount = 3;
+		scarfyCount = 2;
+		bomberCount = 2;
+		triggerCount = 3;
+		foodCount = 3;
+		tomatoDropRate = 10;
+	}
+	else if (gDifficulties == 3) {
+		GWIDTH = 12;
+		GHEIGHT = 12;
+		deeCount = 3;
+		scarfyCount = 3;
+		bomberCount = 3;
+		triggerCount = 2;
+		foodCount = 2;
+		tomatoDropRate = 5;
+	}
+
+	// Clearing the console screen
+	system("CLS");
 
 	// Setup a clear dungeon
 	setupBoard(GHEIGHT, GWIDTH);
@@ -121,7 +313,7 @@ int main(int argc, char** argv)
 	endT = clock();
 
 	// Run the game loop
-	while (!gKeyState[ValidInput::EESC]) {
+	while (!gKeyState[ValidInput::EESC] && !isGameOver) {
 		// Compute the time lap
 		double timeFrame = (double)(endT - startT) / CLOCKS_PER_SEC;
 
@@ -143,6 +335,157 @@ int main(int argc, char** argv)
 		else if (gKeyState[ValidInput::ELoad]) {
 			loadMap();
 			gKeyState[ValidInput::ELoad] = false;
+		}
+	}
+
+	// Delete the file that was created when saving the game
+	for (auto& filename : savedFileName) {
+		std::string deletedFile = filename + ".txt";
+		std::remove(deletedFile.c_str());
+	}
+
+	// Setup records for being not damaged
+	if (hasNotDamaged) {
+		gameRecords[4] = true;
+	}
+
+	// Setup records for completing the level
+	if (isGameOver && isWin) {
+		gameRecords[gDifficulties] = true;
+	}
+
+	// Setup records for completing all level
+	if (gameRecords[1] && gameRecords[2] && gameRecords[3]) {
+		gameRecords[0] = true;
+	}
+
+	// Open game_data_records
+	std::ofstream newRecordsFile("game_data_records");
+
+	// Save the records on game_data_records
+	for (int i = 0; i < gameRecords.size(); i++) {
+		if (gameRecords[i]) {
+			newRecordsFile << i << std::endl;
+		}
+	}
+
+	// Clsoe stream
+	newRecordsFile.close();
+
+	// Initialize and print gameover mark
+	std::string gameOverPict = R"(
+
+  .-_'''-.      ____    ,---.    ,---.    .-''-.              ,-----.    ,---.  ,---.   .-''-.  .-------.     
+ '_( )_   \   .'  __ `. |    \  /    |  .'_ _   \           .'  .-,  '.  |   /  |   | .'_ _   \ |  _ _   \    
+|(_ o _)|  ' /   '  \  \|  ,  \/  ,  | / ( ` )   '         / ,-.|  \ _ \ |  |   |  .'/ ( ` )   '| ( ' )  |    
+. (_,_)/___| |___|  /  ||  |\_   /|  |. (_ o _)  |        ;  \  '_ /  | :|  | _ |  |. (_ o _)  ||(_ o _) /    
+|  |  .-----.   _.-`   ||  _( )_/ |  ||  (_,_)___|        |  _`,/ \ _/  ||  _( )_  ||  (_,_)___|| (_,_).' __  
+'  \  '-   .'.'   _    || (_ o _) |  |'  \   .---.        : (  '\_/ \   ;\ (_ o._) /'  \   .---.|  |\ \  |  | 
+ \  `-'`   | |  _( )_  ||  (_,_)  |  | \  `-'    /         \ `"/  \  ) /  \ (_,_) /  \  `-'    /|  | \ `'   / 
+  \        / \ (_ o _) /|  |      |  |  \       /           '. \_/``".'    \     /    \       / |  |  \    /  
+   `'-...-'   '.(_,_).' '--'      '--'   `'-..-'              '-----'       `---`      `'-..-'  ''-'   `'-'   
+                                                                                                              
+)";
+	std::cout << gameOverPict << std::endl;
+
+	// Handle game over state
+	if (isGameOver) {
+		if (!isWin) {
+			std::cout << "You lose!" << std::endl;
+			std::string losePict = R"(
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                        ..........   .                                              
+                                  .........................  .                                      
+                                ........,(........,(*........... . .                                
+                             ..........*  %......#   /.......... ...     . ...                      
+                       ......,,,,.....&. %&.....%%  %*......................      ..                
+                   .,......,,,,,,,,..,&&&&/.....%%%##...................................            
+                 ,,,,,,,,,,,,,,,,,,,,/#&%%......###((....................................           
+                ,,,,,,,,,,,,*,,,,,,,,.((/*......#//(.....,,,.................... .,.....            
+               *****,,,,,****///////*,,,,,,,,,,......,*********...........,*,*,,,,.,,.......        
+              *****/*///**********,,,,,,,&&&&&&&,............................................       
+             ,**,,,,,**************,,,,,,,,%%%*,,,,,,,,,,..................*,,................      
+           ,,,,,,,,,,,*/****************,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*#**,...... . ...   .    
+        ...,,,,,,,,,**/(*////****************,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*/((./**,,,,,.....    .   
+      .......,*****//((##/////////*****************,,,,,,,,,,,,,,,,,,,,,,**/(/   (//***,,........   
+      ,,....,,*///((###  .///////////***********************,,,,,,,*******///        //**,........  
+     *,,....,**///((/      /////////////////*****************************//*        ,*,,**,..... .  
+     ,,..,,,**,,**/(.       ////////////////////////*******************///           ./*/*,..  . .  
+    ,,.....****//(,           /(/(((////////////////////////////////*,*/                 (,,......  
+   *,.....,*(#,                .//(((((((((((/////////////////,....,,,..                ,,,..... .  
+   *,.,....                    //*****/(((((((((((((((((((/*,,,........,               **,...... ...
+  *,,....,.,                   ************/(((((((((((/**,**,,,,,,.....              ,,/  /,,*,.*,*
+ *,,...,*/*,,                  */*************//((   //***,***,,,,,,...,              .*/ ,.,.*..,..
+ .(/,.*   ///                 .********,,,,***//((    //**,,,***,,,,,,,*                      *,,,*.
+  (/*,     (,                  **///***,,,,**////      //**,,,*********                       ,***  
+    *,/                        ,/////***,,**//(.         /*********//*,                             
+                                 (////******//            /////*,,*/*,                              
+                                  *,**/((////.             *(/*,,,,,,,                              
+                                  //***,,///*               ,///*,.,,..                             
+                                  (***,//***                 (*(***,,,,.                            
+                                  ///(*,*/*,,               ,*//**,,,,,,.                           
+                                  //*****,,,,,              ****/**,,.,,,                           
+                                  //***,,,,,,,,             /*****,,,,,,                            
+                                   /*,,,*,****               //***,....                             
+                                   /*,,,,**/,                  /**,,..,                             
+                                   /,,,,,,*                    ,***,,..                             
+                                   *...,,,                     (((((//*                             
+                                  ((((//(/.                    #((((///*                            
+                                ((((((((/##                    ((/((((/(/                           
+                             (((((((///##(/                   ##((#(((//(/(.                        
+                          .%%#%#%%##/((%###(                   ,%&%%%#*/##                          ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+)";
+
+			std::cout << losePict << std::endl;
+		}
+		else {
+			std::cout << "You win!" << std::endl;
+			std::string winPict = R"(
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                              ..                                                    
+                                             *,,,*.                                                 
+                                          *,,,.,.,,,*                                               
+                                           ,*,,,,,**                                                
+                                           .*** ,**,                                                
+                                                                                                    
+                                                                                    .*,**           
+                .                    ./#####//.,......*,(##((/                   *,,,,,,,**         
+              *,,*,              /##(*........................./##*   (##(#((##/  *,,.,,,,*         
+          ,,,,,.,,,,*.       ,(##,.................................,#(..........,/#,***,,*          
+           .*,.,,,,*       .((............,...........................,#..........*#                
+            ***,.,**     ((,...........(/  /*.........#*  (/.......................#(               
+                       /#*............//    #,.......(/   .#,....................../(               
+                      ##..............((.   (........#(   (#/......................((               
+                    .((...............#(##((#,.......(#(#((#,...................../#                
+                  ,(((................((((((#......../#((((((................,(..*#                 
+              /(#,./#...........,...../((#((#.........#((((#(.................#/##                  
+           ((/.....#*........**,*,*,....*#/,...........(###.....*,,**,*.......((.                   
+         (#........#.........,*****........*#((((((((#(.........,**,,*,.......,#                    
+        (/...........,..,..................((/**,,*,,/((......................,(.                   
+       /#......,#(#///***///((##*...........(/,*,*,,*/#,....................../(                    
+       (#....((/****,*/**/*****//(#(..........##***/#.........................((                    
+       ,(*..(#**********************##/......................................((                     
+         ##(#/************************((*...................................*#*                     
+           (#//************************/#(.................................(#,                      
+           ,#/**************************/#(...............................##.                       
+            #(***************************/#/............................#((#(             ,,        
+             #(*/*************************(#.........................*##(***/((*         ,,.,***,   
+         ..   ((**//**********************(#......................(#((*******/*((     ,**,,,,,,**   
+   .****,,,*.   ##***/***************/**/*##................/(#(#(**************((.     **,.,,,,*,  
+    ,*,,.,,,**    /((*******************/(/(#((##((#(#(##((//*****//**********,*/##      .***       
+   .*,,,,.,*,       .#((///***********/(#,        /(/*/*/********************/*//(#                 
+        .**.             /##((////((##*             ##/**********/*************/(#.                 
+                                                       /(#((((((///////////((##(                    
+                                                                                                    
+                                                                                                    
+                                                                                                   
+			)";
+
+			std::cout << winPict << std::endl;
 		}
 	}
 
@@ -319,19 +662,22 @@ void setupBoard(int rowN, int colN)
 	gHero.setPos(hPos);
 
 	// Creates instances of the Creature classes
-	Creature* waddleDee = new Creature();
-	gCreatures.push_back(waddleDee);
-	creatureCount++;
+	for (int i = 0; i < deeCount; i++) {
+		Creature* waddleDee = new Creature();
+		gCreatures.push_back(waddleDee);
+	}
 
 	// Creates instances of the Scarfy classes
-	Creature* scarfy = new Scarfy();
-	gCreatures.push_back(scarfy);
-	scarfyCount++;
+	for (int i = 0; i < scarfyCount; i++) {
+		Creature* scarfy = new Scarfy();
+		gCreatures.push_back(scarfy);
+	}
 
 	// Creates instances of the Bomber classes
-	Creature* bomber = new Bomber();
-	gCreatures.push_back(bomber);
-	bomberCount++;
+	for (int i = 0; i < bomberCount; i++) {
+		Creature* bomber = new Bomber();
+		gCreatures.push_back(bomber);
+	}
 
 	// It generates valid random positions for each creature in gCreatures using getValidRandomPos
 	for (auto& creature : gCreatures) {
@@ -341,14 +687,14 @@ void setupBoard(int rowN, int colN)
 	}
 
 	// It creates two instances of the Trigger class, and put them into the gItems vector
-	for (int i = 0; i < 2; i++) {
+	for (int i = 0; i < triggerCount; i++) {
 		Trigger* trigger = new Trigger();
 		gItems.push_back(trigger);
 	}
 
 	// It creates five instances of the Food class, and put them into the gItems vector
-	for (int i = 0; i < 5; i++) {
-		Food* food = new Food();
+	for (int i = 0; i < foodCount; i++) {
+		Food* food = new Food(tomatoDropRate);
 		gItems.push_back(food);
 	}
 
@@ -439,7 +785,12 @@ void drawInfo(void)
 	std::cout << "The hero has " << gHero.getHP() << " hp" << std::endl;
 	std::cout << "The hero has " << gHero.getAttack() << " attack" << std::endl;
 	std::cout << "Use wsad key to move Hero " << gHero.getIcon() << std::endl;
+	std::cout << "Use ikjl key to change the direction of hero " << gHero.getIcon() << std::endl;
+	std::cout << "Use p key to let Hero " << gHero.getIcon() << " eats food or eats enemy in front of him (2 cells range)" << std::endl;
 	std::cout << "Every time you step on a trigger T, the hero gets 10 exp." << std::endl;
+	std::cout << "Once the hero level up, it gets additional attack boost." << std::endl;
+	std::cout << "Hero wins the game if all enemies is defated." << std::endl;
+
 
 	switch (gHero.getDirection()) {
 	case 0:
@@ -463,8 +814,10 @@ void drawInfo(void)
 // Pre: rowN and colN is needed
 // Post: Return a valid position
 Position getRandomValidPosition(int rowN, int colN) {
+	// Get random new position
 	Position newPos = Position((int)(rand() % colN), (int)(rand() % rowN));
 
+	// Keep getting new position if the position is not valid
 	while (!isPositionValid(newPos)) {
 		newPos = Position((int)(rand() % colN), (int)(rand() % rowN));
 	}
@@ -521,7 +874,7 @@ void update(bool key[])
 	}
 	else if (key[ValidInput::EP]) {
 		// Create new instance to get the boost power according to the difficulty level
-		Food* newFood = new Food();
+		Food* newFood = new Food(tomatoDropRate);
 
 		// Call swallow function
 		gHero.swallow(GWIDTH, GHEIGHT, gCreatures, gItems, newFood->getBoost());
@@ -618,6 +971,21 @@ void update(bool key[])
 	// Draw map and print information
 	draw();
 	drawInfo();
+
+	// Check whether the hero has ever been hurted
+	if (gHero.getHP() < 100) {
+		hasNotDamaged = false;
+	}
+
+	// Check current game condition
+	if (gHero.getHP() <= 0) {
+		isGameOver = true;
+		isWin = false;
+	}
+	else if (gCreatures.empty()) {
+		isGameOver = true;
+		isWin = true;
+	}
 }
 
 // Intent: Save the map data to a file
@@ -632,18 +1000,29 @@ void saveMap() {
 	std::cout << "Input: ";
 
 	// Declare string called input to save the file name
-	std::string input;
-	std::cin >> input;
+	std::string input = " ";
+
+	// Prevents the user to name game_data_records or empty as file name to prevent overlaps 
+	while (input == "game_data_records" || input == " ") {
+		std::cout << "Input: ";
+		std::cin >> input;
+	}
 
 	// If the user enters "Exit", the function returns and exits without saving
-	if (input.compare("Exit") == 0)
+	if (input.compare("Exit") == 0) {
 		return;
+	}
+
+	// Save the file name by storing it to vector
+	savedFileName.push_back(input);
 
 	// It creates an output file stream oStream with the specified file name concatenated with ".txt"
 	std::ofstream oStream(input + ".txt");
+
+	// Writes the width and height of the board
 	oStream << GWIDTH << " " << GHEIGHT << std::endl;
 
-	// The function writes the dimensions of the game board (GWIDTH and GHEIGHT) to the file
+	// Writes the dimensions of the game board (GWIDTH and GHEIGHT) to the file
 	for (int i = 0; i < GHEIGHT; i++) {
 		for (int j = 0; j < GWIDTH; j++) {
 			oStream << gBoard[i][j];
@@ -721,8 +1100,13 @@ void loadMap() {
 
 	// Open the input file
 	std::ifstream iStream(input + ".txt");
-	if (!iStream.is_open())
-		return;
+
+	while (!iStream.is_open()) {
+		std::cout << "File is not found! Please input valid file." << std::endl;
+		std::cout << "Input: ";
+		std::cin >> input;
+		iStream.open(input + ".txt");
+	}
 
 	// Reset the dungeon board
 	for (int i = 0; i < GHEIGHT; i++) {
@@ -825,7 +1209,7 @@ void loadMap() {
 			item = new Trigger();
 		}
 		else {
-			item = new Food();
+			item = new Food(tomatoDropRate);
 			item->setIcon(iconType);
 		}
 		

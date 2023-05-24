@@ -10,8 +10,8 @@ private:
     int sTomatoRate;
 
 public:
-    Food();
-    Food(int x, int y);
+    Food(int tomatoRate);
+    Food(int x, int y, int tomatoRate);
     Food(const Food& ref);
     void update(Hero& hero) override;
     int getTomatoRate();

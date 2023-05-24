@@ -3,8 +3,8 @@
 // Default constructor
 Creature::Creature()
 {
-    this->sPos.x = 1;
-    this->sPos.y = 1;
+    this->sPos.x = -1;
+    this->sPos.y = -1;
     this->sIcon = 'C';
     this->normalIcon = 'C';
     this->triggeredIcon = '!';
@@ -12,7 +12,7 @@ Creature::Creature()
     this->hasSeenHero = false;
     this->viewDistance = 3;
     this->chaseHeroProbability = 0;
-    this->heroPrevPos = Position(1, 1);
+    this->heroPrevPos = Position(-1, -1);
     this->heroPrevDir = 0;
     this->canMove = true;
     this->awareness = false;
@@ -108,13 +108,13 @@ void Creature::updateSight(Hero& hero)
     // if (canSee(this->sPos, hPos, dir))
     if (canSee(this->sPos, hPos, dir, this->viewDistance) && this->awareness)
     {
-        std::cout << "Creature has found the Hero in the (" << dir.x << ", " << dir.y << ") direction\n";
+        // std::cout << "Creature has found the Hero in the (" << dir.x << ", " << dir.y << ") direction\n";
         this->sIcon = this->triggeredIcon;
         this->hasSeenHero = true;
     }
     else
     {
-        std::cout << "Creature didn't find the Hero\n";
+        // std::cout << "Creature didn't find the Hero\n";
         this->sIcon = this->normalIcon;
         this->hasSeenHero = false;
     }
@@ -127,7 +127,7 @@ void Creature::updateDamage(Hero& hero)
 
     if (hPos == sPos)
     {
-        std::cout << this->normalIcon << " damaged hero " << this->power << std::endl;
+        // std::cout << this->normalIcon << " damaged hero " << this->power << std::endl;
         hero.damage(power);
         this->moveRandomly();
     }
